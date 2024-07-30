@@ -2,6 +2,11 @@ import pygame   # 导入pygame模块
 import sys      # 导入sys模块
 import random, os   # 导入random和os模块
 
+# 读取 hisstory 文件
+# 排序其中的内容 -》 获取 1 2 3 名
+# 写入
+# 
+
 # Constants  常量
 W, H = 288, 512  # 设置窗口尺寸
 FPS = 30   # 定义刷新率，即每秒更新的帧数
