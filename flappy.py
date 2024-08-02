@@ -1,11 +1,7 @@
 import pygame   # 导入pygame模块
 import sys      # 导入sys模块
 import random, os   # 导入random和os模块
-
-# 读取 hisstory 文件
-# 排序其中的内容 -》 获取 1 2 3 名
-# 写入
-# 
+import json
 
 # Constants  常量
 W, H = 288, 512  # 设置窗口尺寸
@@ -180,21 +176,24 @@ def game_window():   # 定义游戏函数
         SCREEN.blit(IMAGES['bgpic'],(0,0))  # 绘制背景
         pipe_group.draw(SCREEN)   # 绘制管道
         SCREEN.blit(IMAGES['floor'],(floor_x,FLOOR_Y))  # 绘制地板
-        show_score(score)  # 显示分数
+        show_score(score, SCREEN)  # 显示分数
         SCREEN.blit(bird.image, bird.rect)  # 绘制小鸟
         pygame.display.update()   # 更新游戏状态
         CLOCK.tick(FPS)  # 设置游戏帧率
 
 def end_window(result):
+    
     # 计算游戏结束图片在窗口中的位置
     gameover_x = (W - IMAGES['gameover'].get_width())/2
-    gameover_y = (FLOOR_Y - IMAGES['gameover'].get_height())/3
+    gameover_y = (FLOOR_Y - IMAGES['gameover'].get_height())/10
     # 计算按键提示图片在窗口中的位置
     key_x = (W - IMAGES['key'].get_width())/2
-    key_y = (FLOOR_Y - IMAGES['gameover'].get_height())/2 + 10
+    key_y = (FLOOR_Y - IMAGES['gameover'].get_height())/2 + 100
     # 获取结果字典中的鸟和管道组对象
     bird = result['bird']
     pipe_group = result['pipe_group']
+    score = result['score']
+    highscore = load_highscore()
 
     while True:  # 进入一个无限循环，直到按下空格键
         if bird.dying:  # 如果鸟对象的dying属性为True，则调用go_die方法处理鸟的死亡动画
@@ -205,24 +204,56 @@ def end_window(result):
                     sys.exit()   # 点击关闭窗口，退出游戏
             
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                    if score > highscore:
+                        save_highscore(score)
                     return  # 如果按下空格键，则退出循环，返回主游戏
-            
+        
+        if score < 5:
+            p = IMAGES['white']
+        elif score < 10:
+            p = IMAGES['silver']
+        elif score < 15:
+            p = IMAGES['bronze']
+        else:
+            p = IMAGES['gold']
         SCREEN.blit(IMAGES['bgpic'], (0,0))   # 绘制背景
         pipe_group.draw(SCREEN)   # 绘制管道组
         SCREEN.blit(IMAGES['floor'], (0,FLOOR_Y))  # 绘制地板
         SCREEN.blit(IMAGES['gameover'], (gameover_x, gameover_y))  # 绘制游戏结束图片
         SCREEN.blit(IMAGES['key'], (key_x, key_y))  # 绘制按键提示图片
-        show_score(result['score'])  # 显示分数
+        SCREEN.blit(IMAGES['grade'], (30, 140))
+        SCREEN.blit(p, (62, 185))
+        show_score(score, SCREEN)  # 显示分数
+        show_highscore(SCREEN, highscore)  # 显示最高得分
+        
         SCREEN.blit(bird.image, bird.rect)   # 绘制小鸟的图像
         pygame.display.update()  # 更新屏幕显示
         CLOCK.tick(FPS)   # 控制游戏帧率
+def load_highscore():
+    try:
+        with open('history.txt', 'r') as file:
+            return int(file.read().strip())
+    except:
+        return 0 
+def save_highscore(score):
+    #  保存历史最高得分
+    with open('history.txt', 'w') as file:
+        file.write(str(score))
 
-def show_score(score):         
+def show_highscore(SCREEN, highscore):
+    highscore_font = pygame.font.Font(None, 36)  # 使用默认字体大小36
+    highscore_text = highscore_font.render(str(highscore), True, (255, 255, 255))
+    text_rect = highscore_text.get_rect()
+    text_rect.midtop = (222, FLOOR_Y / 2 + 18)  # 调整位置
+    SCREEN.blit(highscore_text, text_rect)
+
+
+def show_score(score, SCREEN):         
     score_str = str(score)  # 将分数转换为字符串
     n = len(score_str)  # 获取分数字符串的长度
     w = IMAGES['0'].get_width() * 1.1  # 计算每个数字图片的宽度，并乘以1.1作为间距
     x = (W - n * w) / 2   # 计算数字图片在屏幕上的水平起始位置
-    y = H * 0.1   # 计算数字图片在屏幕上的垂直起始位置
+    y = H * 0.18   # 计算数字图片在屏幕上的垂直起始位置
     for number in score_str:   # 遍历分数字符串中的每个数字
         SCREEN.blit(IMAGES[number], (x, y))   # 将每个数字的图片绘制到屏幕上
         x += w  # 更新x坐标，为下一个数字图片绘制位置做准备
