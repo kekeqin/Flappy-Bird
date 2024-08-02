@@ -193,7 +193,7 @@ def end_window(result):
     bird = result['bird']
     pipe_group = result['pipe_group']
     score = result['score']
-    highscore = load_highscore()
+    
 
     while True:  # 进入一个无限循环，直到按下空格键
         if bird.dying:  # 如果鸟对象的dying属性为True，则调用go_die方法处理鸟的死亡动画
@@ -207,7 +207,10 @@ def end_window(result):
                     if score > highscore:
                         save_highscore(score)
                     return  # 如果按下空格键，则退出循环，返回主游戏
-        
+        highscore = load_highscore()  # 加载历史最高分
+        if score > highscore:
+            save_highscore(score)  # 保存新的最高分
+            highscore = score  # 更新显示的最高分
         if score < 5:
             p = IMAGES['white']
         elif score < 10:
